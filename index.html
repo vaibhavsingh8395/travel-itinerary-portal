@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Travel Itinerary Portal</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #f4f7f6; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+    .container { max-width: 900px; width: 100%; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+    h1, h2 { margin-top: 0; color: #1a2b4c; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+    input[type="text"], input[type="email"], input[type="password"], select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+    button { background-color: #0066cc; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+    button:hover { background-color: #004b99; }
+    .btn-small { padding: 6px 12px; font-size: 13px; }
+    .logout-btn { background-color: #dc3545; float: right; padding: 8px 16px; font-size: 14px; }
+    .logout-btn:hover { background-color: #c82333; }
+    hr { margin: 40px 0; border: none; border-top: 1px solid #eee; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #f8f9fa; color: #555; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .badge-pending { background-color: #fff3cd; color: #856404; }
+    .badge-approved { background-color: #d4edda; color: #155724; }
+    .badge-sent { background-color: #cce5ff; color: #004085; }
+    .error-msg { color: #dc3545; margin-top: 10px; display: none; font-weight: 600; }
+    .hidden { display: none; }
+    .user-banner { background: #eef5ff; padding: 12px 18px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .admin-banner { background: #fff3cd; border: 1px solid #ffeba2; }
+    .demo-credentials { background: #f8f9fa; padding: 15px; border-radius: 6px; font-size: 14px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- LOGIN SECTION -->
+  <div id="loginSection">
+    <h1>🔑 Portal Login</h1>
+    <p>Sign in to submit requests or access administrative controls.</p>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginEmail">Email Address</label>
+        <input type="email" id="loginEmail" placeholder="e.g., user1@travel.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="Enter password" required>
+      </div>
+
+      <button type="submit">Sign In</button>
+      <div id="loginError" class="error-msg">Invalid email or password.</div>
+    </form>
+
+    <div class="demo-credentials">
+      <strong>Available Test Credentials:</strong><br><br>
+      👤 <strong>User Accounts:</strong><br>
+      • <code>user1@travel.com</code> / <code>password123</code><br>
+      • <code>user2@travel.com</code> / <code>password123</code><br><br>
+      🛡️ <strong>Admin Account:</strong><br>
+      • <code>admin@travel.com</code> / <code>admin123</code>
+    </div>
+  </div>
+
+  <!-- USER PORTAL SECTION -->
+  <div id="userSection" class="hidden">
+    <div class="user-banner">
+      <span>Logged in as: <strong id="currentUserDisplay"></strong> (User)</span>
+      <button class="logout-btn" onclick="logout()">Log Out</button>
+    </div>
+
+    <h1>🌍 Travel Itinerary Request Portal</h1>
+    <p>Submit your travel details below and we will send a customized itinerary to your email.</p>
+
+    <form id="itineraryForm">
+      <div class="form-group">
+        <label for="destination">Destination City / Country</label>
+        <input type="text" id="destination" placeholder="e.g., Tokyo, Japan or Paris, France" required>
+      </div>
+
+      <div class="form-group">
+        <label for="days">Number of Days</label>
+        <select id="days" required>
+          <option value="" disabled selected>Select duration...</option>
+          <option value="1 Day">1 Day</option>
+          <option value="3 Days">3 Days</option>
+          <option value="5 Days">5 Days</option>
+          <option value="7 Days">7 Days (1 Week)</option>
+          <option value="10 Days">10 Days</option>
+          <option value="14 Days">14 Days (2 Weeks)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="notes">Preferences / Special Requests</label>
+        <textarea id="notes" rows="3" placeholder="e.g., Foodie tour, luxury hotels, budget friendly..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="contactEmail">Email to Send Itinerary To</label>
+        <input type="email" id="contactEmail" placeholder="your-email@example.com" required>
+      </div>
+
+      <button type="submit">Submit Request</button>
+    </form>
+
+    <hr>
+
+    <h2>Your Submitted Requests</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Destination</th>
+          <th>Duration</th>
+          <th>Preferences</th>
+          <th>Delivery Email</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ADMIN DASHBOARD SECTION -->
+  <div id="adminSection" class="hidden">
+    <div class="user-banner admin-banner">
+      <span>🛡️ Admin Dashboard (<strong id="currentAdminDisplay"></strong>)</span>
+      <button class="logout-btn" onclick="logout()">Log Out</button>
+    </div>
+
+    <h1>📋 Manage All Itinerary Requests</h1>
+    <p>Review user submissions, generate itineraries, and update request statuses.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>User Account</th>
+          <th>Destination</th>
+          <th>Duration</th>
+          <th>Delivery Email</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="adminTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Auth Database
+  const users = {
+    'user1@travel.com': { password: 'password123', role: 'user' },
+    'user2@travel.com': { password: 'password123', role: 'user' },
+    'admin@travel.com': { password: 'admin123', role: 'admin' }
+  };
+
+  const loginForm = document.getElementById('loginForm');
+  const loginSection = document.getElementById('loginSection');
+  const userSection = document.getElementById('userSection');
+  const adminSection = document.getElementById('adminSection');
+  const loginError = document.getElementById('loginError');
+  const itineraryForm = document.getElementById('itineraryForm');
+
+  function checkSession() {
+    const activeUser = sessionStorage.getItem('active_user');
+    const role = sessionStorage.getItem('active_role');
+
+    if (activeUser && role === 'user') {
+      loginSection.classList.add('hidden');
+      adminSection.classList.add('hidden');
+      userSection.classList.remove('hidden');
+      document.getElementById('currentUserDisplay').textContent = activeUser;
+      document.getElementById('contactEmail').value = activeUser;
+      loadUserRequests(activeUser);
+    } else if (activeUser && role === 'admin') {
+      loginSection.classList.add('hidden');
+      userSection.classList.add('hidden');
+      adminSection.classList.remove('hidden');
+      document.getElementById('currentAdminDisplay').textContent = activeUser;
+      loadAdminRequests();
+    } else {
+      loginSection.classList.remove('hidden');
+      userSection.classList.add('hidden');
+      adminSection.classList.add('hidden');
+    }
+  }
+
+  loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    if (users[email] && users[email].password === password) {
+      sessionStorage.setItem('active_user', email);
+      sessionStorage.setItem('active_role', users[email].role);
+      loginError.style.display = 'none';
+      loginForm.reset();
+      checkSession();
+    } else {
+      loginError.style.display = 'block';
+    }
+  });
+
+  function logout() {
+    sessionStorage.clear();
+    checkSession();
+  }
+
+  function getBadgeClass(status) {
+    if (status === 'Approved') return 'badge-approved';
+    if (status === 'Itinerary Sent') return 'badge-sent';
+    return 'badge-pending';
+  }
+
+  function loadUserRequests(userEmail) {
+    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+    const userRequests = allRequests.filter(req => req.user === userEmail);
+    const tbody = document.getElementById('userTableBody');
+    tbody.innerHTML = '';
+
+    if (userRequests.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#888;">No requests submitted yet.</td></tr>';
+      return;
+    }
+
+    userRequests.forEach(req => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${req.destination}</strong></td>
+        <td>${req.days}</td>
+        <td>${req.notes || '—'}</td>
+        <td>${req.contactEmail}</td>
+        <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function loadAdminRequests() {
+    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+    const tbody = document.getElementById('adminTableBody');
+    tbody.innerHTML = '';
+
+    if (allRequests.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:#888;">No user requests in queue.</td></tr>';
+      return;
+    }
+
+    allRequests.forEach((req, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${req.user}</td>
+        <td><strong>${req.destination}</strong></td>
+        <td>${req.days}</td>
+        <td>${req.contactEmail}</td>
+        <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
+        <td>
+          <select onchange="updateStatus(${index}, this.value)" style="padding:4px; font-size:12px;">
+            <option value="Pending Review" ${req.status==='Pending Review'?'selected':''}>Pending Review</option>
+            <option value="Approved" ${req.status==='Approved'?'selected':''}>Approved</option>
+            <option value="Itinerary Sent" ${req.status==='Itinerary Sent'?'selected':''}>Itinerary Sent</option>
+          </select>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function updateStatus(index, newStatus) {
+    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+    allRequests[index].status = newStatus;
+    localStorage.setItem('travel_requests', JSON.stringify(allRequests));
+    loadAdminRequests();
+  }
+
+  itineraryForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const activeUser = sessionStorage.getItem('active_user');
+    const destination = document.getElementById('destination').value;
+    const days = document.getElementById('days').value;
+    const notes = document.getElementById('notes').value;
+    const contactEmail = document.getElementById('contactEmail').value;
+
+    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+    allRequests.push({
+      user: activeUser,
+      destination,
+      days,
+      notes,
+      contactEmail,
+      status: 'Pending Review'
+    });
+    localStorage.setItem('travel_requests', JSON.stringify(allRequests));
+
+    itineraryForm.reset();
+    checkSession();
+  });
+
+  checkSession();
+</script>
+
+</body>
+</html>
