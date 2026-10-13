@@ -356,10 +356,9 @@
     document.getElementById('tabBtnPlanner').classList.remove('active');
     document.getElementById('tabBtnAuth').classList.remove('active');
 
-    const activeUser = sessionStorage.getItem('active_user');
     const role = sessionStorage.getItem('active_role');
 
-    if (role === 'admin') {
+    if (role === 'admin' && tabName === 'admin') {
       document.getElementById('adminSection').classList.remove('hidden');
       loadAdminDashboard();
       return;
@@ -467,7 +466,12 @@
       sessionStorage.setItem('active_role', users[email].role);
       document.getElementById('loginError').style.display = 'none';
       loginForm.reset();
-      checkSession();
+      
+      if (users[email].role === 'admin') {
+        switchTab('admin');
+      } else {
+        switchTab('planner');
+      }
     } else {
       document.getElementById('loginError').style.display = 'block';
     }
@@ -499,3 +503,211 @@
     journalCmsForm.reset();
     alert("Journal entry published successfully!");
     loadAdminDashboard();
+  });
+
+  function loadPublicJournalFeed() {
+    const feed = document.getElementById('publicJournalFeed');
+    const journals = JSON.parse(localStorage.getItem('exquisite_travel_journals')) || [
+      {
+        title: "Sunset over the Amalfi Coast",
+        image: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80",
+        content: "Exploring clifftop lemon groves and hidden azure coves along the Italian coastline. A truly transcendent Mediterranean escape.",
+        date: "Oct 10, 2026"
+      },
+      {
+        title: "Bamboo Forests of Kyoto",
+        image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80",
+        content: "Serene morning walks through Arashiyama, followed by traditional tea ceremonies in historic Gion.",
+        date: "Sep 28, 2026"
+      }
+    ];
+
+    feed.innerHTML = '';
+    journals.forEach(j => {
+      feed.innerHTML += `
+        <div class="journal-entry-card">
+          <img src="${j.image}" alt="${j.title}" class="journal-img">
+          <div class="journal-body">
+            <div class="journal-meta">📍 ${j.date}</div>
+            <h3 style="margin-bottom:10px;">${j.title}</h3>
+            <p style="font-size:14px; color:#64748b; line-height:1.5; flex-grow:1;">${j.content}</p>
+            ${j.video ? `<a href="${j.video}" target="_blank" class="btn-small" style="background:#0f172a; text-align:center; text-decoration:none; margin-top:15px; display:block;">▶️ Watch Video Spotlight</a>` : ''}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function loadUserRequests(userEmail) {
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const userRequests = allRequests.filter(req => req.user === userEmail);
+    const tbody = document.getElementById('userTableBody');
+    tbody.innerHTML = '';
+
+    if (userRequests.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; text-align:center;">No requests submitted yet.</td></tr>';
+      return;
+    }
+
+    userRequests.forEach(req => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${req.destination}</strong></td>
+        <td>${req.days}</td>
+        <td>${req.notes || '—'}</td>
+        <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
+        <td>${req.aiItinerary ? `<button class="btn-small" onclick="viewItinerary('${encodeURIComponent(req.aiItinerary)}')">View Plan</button>` : '<em style="color:#94a3b8;">Processing...</em>'}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function viewItinerary(encodedItinerary) {
+    alert(decodeURIComponent(encodedItinerary));
+  }
+
+  function loadAdminDashboard() {
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const journals = JSON.parse(localStorage.getItem('exquisite_travel_journals')) || [];
+    const users = getUsers();
+    const tbody = document.getElementById('adminTableBody');
+    tbody.innerHTML = '';
+
+    document.getElementById('metricTotal').textContent = allRequests.length;
+    document.getElementById('metricPending').textContent = allRequests.filter(r => r.status === 'Pending Review').length;
+    document.getElementById('metricJournals').textContent = journals.length;
+
+    const savedKey = localStorage.getItem('gemini_api_key') || '';
+    document.getElementById('geminiApiKey').value = savedKey;
+
+    if (allRequests.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; text-align:center;">No client requests in queue.</td></tr>';
+      return;
+    }
+
+    allRequests.forEach((req, index) => {
+      const profile = users[req.user] || { name: 'Unknown Traveler', phone: '—' };
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <strong>${profile.name}</strong><br>
+          <span style="font-size:13px; color:#64748b;">✉️ ${req.user}</span><br>
+          <span style="font-size:13px; color:#64748b;">📞 ${profile.phone}</span>
+        </td>
+        <td>
+          <strong>${req.destination}</strong><br>
+          <span style="font-size:13px; color:#64748b;">Duration: ${req.days}</span>
+        </td>
+        <td style="max-width:220px; word-break:break-word;">${req.notes || '—'}</td>
+        <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
+        <td>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn-ai btn-small" onclick="generateAiItinerary(${index})">✨ AI Generate Plan</button>
+            <select onchange="updateStatus(${index}, this.value)" style="padding:6px; font-size:13px; border-radius:6px;">
+              <option value="Pending Review" ${req.status==='Pending Review'?'selected':''}>Pending Review</option>
+              <option value="Approved" ${req.status==='Approved'?'selected':''}>Approved</option>
+              <option value="Itinerary Sent" ${req.status==='Itinerary Sent'?'selected':''}>Itinerary Sent</option>
+            </select>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  async function generateAiItinerary(index) {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      alert("Please paste your Gemini API Key in the settings box at the top of the Admin Dashboard first.");
+      return;
+    }
+
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const users = getUsers();
+    const req = allRequests[index];
+    const profile = users[req.user] || { name: 'Traveler' };
+
+    const modal = document.getElementById('aiModal');
+    const outputBox = document.getElementById('aiOutputText');
+    const targetDetail = document.getElementById('aiTargetDetail');
+
+    modal.classList.remove('hidden');
+    targetDetail.innerHTML = `Generating Exquisite Itinerary for <strong>${profile.name}</strong> (${req.days} in ${req.destination})...`;
+    outputBox.textContent = "Connecting to Gemini AI Concierge...";
+
+    const prompt = `Create a luxurious, highly detailed, and engaging day-by-day travel itinerary for a ${req.days} trip to ${req.destination} for ${profile.name}. Traveler Preferences: "${req.notes || 'Curated local experiences, fine dining, and hidden scenic spots'}". Format with elegant headings for each day.`;
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        const aiResponseText = data.candidates[0].content.parts[0].text;
+        outputBox.textContent = aiResponseText;
+
+        allRequests[index].aiItinerary = aiResponseText;
+        allRequests[index].status = 'Itinerary Sent';
+        localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
+        loadAdminDashboard();
+      } else {
+        outputBox.textContent = "Error generating response: " + JSON.stringify(data);
+      }
+    } catch (err) {
+      outputBox.textContent = "Failed to connect to AI API: " + err.message;
+    }
+  }
+
+  function closeAiModal() {
+    document.getElementById('aiModal').classList.add('hidden');
+  }
+
+  function updateStatus(index, newStatus) {
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    allRequests[index].status = newStatus;
+    localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
+    loadAdminDashboard();
+  }
+
+  itineraryForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const activeUser = sessionStorage.getItem('active_user');
+    const destination = document.getElementById('destination').value;
+    const days = document.getElementById('days').value;
+    const notes = document.getElementById('notes').value;
+    const contactEmail = document.getElementById('contactEmail').value;
+
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    allRequests.push({
+      user: activeUser,
+      destination,
+      days,
+      notes,
+      contactEmail,
+      status: 'Pending Review'
+    });
+    localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
+
+    itineraryForm.reset();
+    alert("Itinerary request submitted successfully!");
+    switchTab('planner');
+  });
+
+  function getBadgeClass(status) {
+    if (status === 'Approved') return 'badge-approved';
+    if (status === 'Itinerary Sent') return 'badge-sent';
+    return 'badge-pending';
+  }
+
+  // Initial load
+  loadPublicJournalFeed();
+</script>
+
+</body>
+</html>
