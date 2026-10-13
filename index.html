@@ -330,6 +330,8 @@
 </div>
 
 <script>
+  const STORAGE_KEY = 'exquisite_travel_requests';
+
   function getUsers() {
     const defaultUsers = {
       'admin@travel.com': { password: 'admin123', name: 'System Admin', phone: '—', role: 'admin' }
@@ -413,17 +415,6 @@
     } else {
       registerBox.classList.add('hidden');
       loginBox.classList.remove('hidden');
-    }
-  }
-
-  function checkSession() {
-    const activeUser = sessionStorage.getItem('active_user');
-    const role = sessionStorage.getItem('active_role');
-
-    if (activeUser && role === 'admin') {
-      switchTab('admin');
-    } else {
-      switchTab('journal');
     }
   }
 
@@ -539,7 +530,7 @@
   }
 
   function loadUserRequests(userEmail) {
-    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     const userRequests = allRequests.filter(req => req.user === userEmail);
     const tbody = document.getElementById('userTableBody');
     tbody.innerHTML = '';
@@ -567,7 +558,7 @@
   }
 
   function loadAdminDashboard() {
-    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     const journals = JSON.parse(localStorage.getItem('exquisite_travel_journals')) || [];
     const users = getUsers();
     const tbody = document.getElementById('adminTableBody');
@@ -622,7 +613,7 @@
       return;
     }
 
-    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     const users = getUsers();
     const req = allRequests[index];
     const profile = users[req.user] || { name: 'Traveler' };
@@ -654,7 +645,7 @@
 
         allRequests[index].aiItinerary = aiResponseText;
         allRequests[index].status = 'Itinerary Sent';
-        localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(allRequests));
         loadAdminDashboard();
       } else {
         outputBox.textContent = "Error generating response: " + JSON.stringify(data);
@@ -669,9 +660,9 @@
   }
 
   function updateStatus(index, newStatus) {
-    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     allRequests[index].status = newStatus;
-    localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allRequests));
     loadAdminDashboard();
   }
 
@@ -683,7 +674,7 @@
     const notes = document.getElementById('notes').value;
     const contactEmail = document.getElementById('contactEmail').value;
 
-    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     allRequests.push({
       user: activeUser,
       destination,
@@ -692,7 +683,7 @@
       contactEmail,
       status: 'Pending Review'
     });
-    localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allRequests));
 
     itineraryForm.reset();
     alert("Itinerary request submitted successfully!");
