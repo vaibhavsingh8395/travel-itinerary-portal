@@ -52,7 +52,7 @@
 
     /* Navigation & Tabs */
     .nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; flex-wrap: wrap; }
-    .tab-btn { background: #e2e8f0; color: #475569; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: auto; font-size: 14px; }
+    .tab-btn { background: #e2e8f0; color: #475569; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; width: auto; font-size: 14px; transition: background 0.2s; }
     .tab-btn.active { background: var(--primary); color: white; }
 
     /* Journal Feed Styling */
@@ -346,7 +346,6 @@
     localStorage.setItem('gemini_api_key', key.trim());
   }
 
-  // Navigation Tab Switching
   function switchTab(tabName) {
     document.getElementById('viewJournal').classList.add('hidden');
     document.getElementById('viewPlanner').classList.add('hidden');
@@ -401,7 +400,6 @@
     }
   }
 
-  const authSection = document.getElementById('viewAuth');
   const loginBox = document.getElementById('loginBox');
   const registerBox = document.getElementById('registerBox');
   const loginForm = document.getElementById('loginForm');
@@ -430,7 +428,6 @@
     }
   }
 
-  // Registration Handler
   registerForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const name = document.getElementById('regName').value.trim();
@@ -459,7 +456,6 @@
     }, 1500);
   });
 
-  // Login Handler
   loginForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -482,7 +478,6 @@
     switchTab('journal');
   }
 
-  // Journal CMS Publishing
   journalCmsForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const title = document.getElementById('cmsTitle').value.trim();
@@ -504,82 +499,3 @@
     journalCmsForm.reset();
     alert("Journal entry published successfully!");
     loadAdminDashboard();
-  });
-
-  function loadPublicJournalFeed() {
-    const feed = document.getElementById('publicJournalFeed');
-    const journals = JSON.parse(localStorage.getItem('exquisite_travel_journals')) || [
-      {
-        title: "Sunset over the Amalfi Coast",
-        image: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80",
-        content: "Exploring clifftop lemon groves and hidden azure coves along the Italian coastline. A truly transcendent Mediterranean escape.",
-        date: "Oct 10, 2026"
-      },
-      {
-        title: "Bamboo Forests of Kyoto",
-        image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80",
-        content: "Serene morning walks through Arashiyama, followed by traditional tea ceremonies in historic Gion.",
-        date: "Sep 28, 2026"
-      }
-    ];
-
-    feed.innerHTML = '';
-    journals.forEach(j => {
-      feed.innerHTML += `
-        <div class="journal-entry-card">
-          <img src="${j.image}" alt="${j.title}" class="journal-img">
-          <div class="journal-body">
-            <div class="journal-meta">📍 ${j.date}</div>
-            <h3 style="margin-bottom:10px;">${j.title}</h3>
-            <p style="font-size:14px; color:#64748b; line-height:1.5; flex-grow:1;">${j.content}</p>
-            ${j.video ? `<a href="${j.video}" target="_blank" class="btn-small" style="background:#0f172a; text-align:center; text-decoration:none; margin-top:15px; display:block;">▶️ Watch Video Spotlight</a>` : ''}
-          </div>
-        </div>
-      `;
-    });
-  }
-
-  function loadUserRequests(userEmail) {
-    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
-    const userRequests = allRequests.filter(req => req.user === userEmail);
-    const tbody = document.getElementById('userTableBody');
-    tbody.innerHTML = '';
-
-    if (userRequests.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; text-align:center;">No requests submitted yet.</td></tr>';
-      return;
-    }
-
-    userRequests.forEach(req => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td><strong>${req.destination}</strong></td>
-        <td>${req.days}</td>
-        <td>${req.notes || '—'}</td>
-        <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
-        <td>${req.aiItinerary ? `<button class="btn-small" onclick="viewItinerary('${encodeURIComponent(req.aiItinerary)}')">View Plan</button>` : '<em style="color:#94a3b8;">Processing...</em>'}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-
-  function viewItinerary(encodedItinerary) {
-    alert(decodeURIComponent(encodedItinerary));
-  }
-
-  function loadAdminDashboard() {
-    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
-    const journals = JSON.parse(localStorage.getItem('exquisite_travel_journals')) || [];
-    const users = getUsers();
-    const tbody = document.getElementById('adminTableBody');
-    tbody.innerHTML = '';
-
-    document.getElementById('metricTotal').textContent = allRequests.length;
-    document.getElementById('metricPending').textContent = allRequests.filter(r => r.status === 'Pending Review').length;
-    document.getElementById('metricJournals').textContent = journals.length;
-
-    const savedKey = localStorage.getItem('gemini_api_key') || '';
-    document.getElementById('geminiApiKey').value = savedKey;
-
-    if (allRequests.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; text-align:
