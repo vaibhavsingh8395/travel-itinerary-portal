@@ -275,6 +275,14 @@
       <small style="color:#64748b;">Securely saved in your browser session for automated itinerary generation.</small>
     </div>
 
+    <!-- DEBUGGER / RESET UTILITY -->
+    <div style="background:#fef3c7; border:1px solid #fde68a; padding:15px; border-radius:10px; margin-bottom:25px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <strong>🛠️ Admin Debugger:</strong> Inject a sample test user and itinerary request instantly.
+      </div>
+      <button class="btn-small" style="background:#d97706; width:auto;" onclick="injectSampleData()">Inject Sample Request</button>
+    </div>
+
     <!-- JOURNAL CMS FORM -->
     <div style="background:#f8fafc; padding:25px; border-radius:12px; border:1px solid var(--border-color); margin-bottom:35px;">
       <h3>✍️ Publish / Update Travel Journal Entry</h3>
@@ -426,12 +434,6 @@
     const password = document.getElementById('regPassword').value;
 
     const users = getUsers();
-    if (users[email]) {
-      document.getElementById('regError').style.display = 'block';
-      document.getElementById('regSuccess').style.display = 'none';
-      return;
-    }
-
     users[email] = { name, email, phone, password, role: 'user' };
     saveUsers(users);
 
@@ -459,6 +461,16 @@
       loginForm.reset();
       
       if (users[email].role === 'admin') {
+        // Dynamically add a temporary Admin navigation button if signed in as admin
+        let adminTabBtn = document.getElementById('tabBtnAdmin');
+        if (!adminTabBtn) {
+          adminTabBtn = document.createElement('button');
+          adminTabBtn.id = 'tabBtnAdmin';
+          adminTabBtn.className = 'tab-btn active';
+          adminTabBtn.textContent = '🛡️ Admin Dashboard';
+          adminTabBtn.onclick = () => switchTab('admin');
+          document.querySelector('.nav-tabs').appendChild(adminTabBtn);
+        }
         switchTab('admin');
       } else {
         switchTab('planner');
@@ -470,7 +482,33 @@
 
   function logout() {
     sessionStorage.clear();
+    const adminBtn = document.getElementById('tabBtnAdmin');
+    if (adminBtn) adminBtn.remove();
     switchTab('journal');
+  }
+
+  function injectSampleData() {
+    const users = getUsers();
+    users['sample.traveler@example.com'] = {
+      name: 'Jessica Pearson',
+      email: 'sample.traveler@example.com',
+      phone: '+1 (310) 555-0199',
+      role: 'user'
+    };
+    saveUsers(users);
+
+    const requests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    requests.push({
+      user: 'sample.traveler@example.com',
+      destination: 'Swiss Alps & Zurich',
+      days: '7 Days (1 Week)',
+      notes: 'Luxury ski chalets, scenic train tours, and private fondue dining.',
+      contactEmail: 'sample.traveler@example.com',
+      status: 'Pending Review'
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+    loadAdminDashboard();
+    alert("Sample traveler and request injected successfully!");
   }
 
   journalCmsForm.addEventListener('submit', function(e) {
