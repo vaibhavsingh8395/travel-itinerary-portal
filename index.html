@@ -104,7 +104,7 @@
 <div class="main-wrapper">
 
   <!-- PUBLIC WEBSITE NAVIGATION TABS -->
-  <div class="nav-tabs">
+  <div class="nav-tabs" id="navTabsContainer">
     <button class="tab-btn active" id="tabBtnJournal" onclick="switchTab('journal')">📖 Travel Journal</button>
     <button class="tab-btn" id="tabBtnPlanner" onclick="switchTab('planner')">✈️ Request Itinerary</button>
     <button class="tab-btn" id="tabBtnAuth" onclick="switchTab('auth')" style="margin-left: auto; background: #0f172a; color: white;">🔑 Admin / Client Sign In</button>
@@ -266,3 +266,500 @@
         <h4>Published Journals</h4>
         <span id="metricJournals">0</span>
       </div>
+    </div>
+
+    <!-- API CONFIGURATION -->
+    <div class="api-key-box">
+      <label for="geminiApiKey">🔑 Gemini AI API Key Settings:</label>
+      <input type="password" id="geminiApiKey" placeholder="Paste your Gemini API Key here" onchange="saveApiKey(this.value)">
+      <small style="color:#64748b;">Securely saved in your browser session for automated itinerary generation.</small>
+    </div>
+
+    <!-- DEBUGGER / RESET UTILITY -->
+    <div style="background:#fef3c7; border:1px solid #fde68a; padding:15px; border-radius:10px; margin-bottom:25px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <strong>🛠️ Admin Debugger:</strong> Inject a sample test user and itinerary request instantly.
+      </div>
+      <button class="btn-small" style="background:#d97706; width:auto;" onclick="injectSampleData()">Inject Sample Request</button>
+    </div>
+
+    <!-- JOURNAL CMS FORM -->
+    <div style="background:#f8fafc; padding:25px; border-radius:12px; border:1px solid var(--border-color); margin-bottom:35px;">
+      <h3>✍️ Publish / Update Travel Journal Entry</h3>
+      <p style="font-size:14px; color:#64748b; margin-bottom:20px;">Add new travel logs, photos, and video spotlights for your website audience.</p>
+
+      <form id="journalCmsForm">
+        <div class="grid-2" style="grid-template-columns: 1fr 1fr; gap:20px;">
+          <div class="form-group">
+            <label for="cmsTitle">Journal Title / Destination</label>
+            <input type="text" id="cmsTitle" placeholder="e.g., Hidden Gems of Kyoto" required>
+          </div>
+          <div class="form-group">
+            <label for="cmsImage">Photo / Cover Image URL</label>
+            <input type="url" id="cmsImage" placeholder="https://images.unsplash.com/..." required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cmsVideo">Video URL (Optional YouTube / MP4 Link)</label>
+          <input type="text" id="cmsVideo" placeholder="https://www.youtube.com/embed/...">
+        </div>
+        <div class="form-group">
+          <label for="cmsContent">Detailed Travel Story & Journal Notes</label>
+          <textarea id="cmsContent" rows="4" placeholder="Share your detailed experiences, tips, and highlights..." required></textarea>
+        </div>
+        <button type="submit" style="width: auto; background: var(--primary);">Publish Journal Entry</button>
+      </form>
+    </div>
+
+    <!-- CLIENT REQUESTS & PROFILES -->
+    <h3>📋 Client Itinerary Requests & Traveler Profiles</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Traveler Details</th>
+          <th>Destination & Duration</th>
+          <th>Preferences</th>
+          <th>Status</th>
+          <th>Actions / AI Generator</th>
+        </tr>
+      </thead>
+      <tbody id="adminTableBody"></tbody>
+    </table>
+
+    <!-- AI GENERATED OUTPUT PREVIEW MODAL -->
+    <div id="aiModal" class="ai-response-modal hidden">
+      <h3>✨ AI Generated Itinerary Preview</h3>
+      <p id="aiTargetDetail" style="font-weight:600; color:#475569; margin-bottom:10px;"></p>
+      <div id="aiOutputText" class="ai-output-area">Generating response...</div>
+      <button class="btn-small" onclick="closeAiModal()">Close Preview</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const STORAGE_KEY = 'exquisite_travel_requests';
+
+  function getUsers() {
+    const defaultUsers = {
+      'admin@travel.com': { password: 'admin123', name: 'System Admin', phone: '—', role: 'admin' }
+    };
+    const stored = localStorage.getItem('exquisite_registered_users');
+    return stored ? JSON.parse(stored) : defaultUsers;
+  }
+
+  function saveUsers(usersObj) {
+    localStorage.setItem('exquisite_registered_users', JSON.stringify(usersObj));
+  }
+
+  function saveApiKey(key) {
+    localStorage.setItem('gemini_api_key', key.trim());
+  }
+
+  function switchTab(tabName) {
+    document.getElementById('viewJournal').classList.add('hidden');
+    document.getElementById('viewPlanner').classList.add('hidden');
+    document.getElementById('viewAuth').classList.add('hidden');
+    document.getElementById('adminSection').classList.add('hidden');
+
+    const btnJournal = document.getElementById('tabBtnJournal');
+    const btnPlanner = document.getElementById('tabBtnPlanner');
+    const btnAuth = document.getElementById('tabBtnAuth');
+    const btnAdmin = document.getElementById('tabBtnAdmin');
+
+    if (btnJournal) btnJournal.classList.remove('active');
+    if (btnPlanner) btnPlanner.classList.remove('active');
+    if (btnAuth) btnAuth.classList.remove('active');
+    if (btnAdmin) btnAdmin.classList.remove('active');
+
+    const role = sessionStorage.getItem('active_role');
+
+    if (tabName === 'admin') {
+      if (role === 'admin') {
+        document.getElementById('adminSection').classList.remove('hidden');
+        if (btnAdmin) btnAdmin.classList.add('active');
+        loadAdminDashboard();
+      } else {
+        alert("Please sign in with administrator credentials first.");
+        switchTab('auth');
+      }
+      return;
+    }
+
+    if (tabName === 'journal') {
+      document.getElementById('viewJournal').classList.remove('hidden');
+      if (btnJournal) btnJournal.classList.add('active');
+      loadPublicJournalFeed();
+    } else if (tabName === 'planner') {
+      document.getElementById('viewPlanner').classList.remove('hidden');
+      if (btnPlanner) btnPlanner.classList.add('active');
+      checkPlannerAccess();
+    } else if (tabName === 'auth') {
+      document.getElementById('viewAuth').classList.remove('hidden');
+      if (btnAuth) btnAuth.classList.add('active');
+    }
+  }
+
+  function checkPlannerAccess() {
+    const activeUser = sessionStorage.getItem('active_user');
+    const promptBox = document.getElementById('plannerAuthPrompt');
+    const submitBtn = document.getElementById('submitItineraryBtn');
+    const submissionsBox = document.getElementById('userSubmissionsBox');
+
+    if (activeUser) {
+      promptBox.classList.add('hidden');
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      document.getElementById('contactEmail').value = activeUser;
+      submissionsBox.classList.remove('hidden');
+      loadUserRequests(activeUser);
+    } else {
+      promptBox.classList.remove('hidden');
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.6';
+      submissionsBox.classList.add('hidden');
+    }
+  }
+
+  const loginBox = document.getElementById('loginBox');
+  const registerBox = document.getElementById('registerBox');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  const itineraryForm = document.getElementById('itineraryForm');
+  const journalCmsForm = document.getElementById('journalCmsForm');
+
+  function toggleAuthMode(mode) {
+    if (mode === 'register') {
+      loginBox.classList.add('hidden');
+      registerBox.classList.remove('hidden');
+    } else {
+      registerBox.classList.add('hidden');
+      loginBox.classList.remove('hidden');
+    }
+  }
+
+  registerForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const phone = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPassword').value;
+
+    const users = getUsers();
+    users[email] = { name, email, phone, password, role: 'user' };
+    saveUsers(users);
+
+    document.getElementById('regError').style.display = 'none';
+    document.getElementById('regSuccess').style.display = 'block';
+
+    setTimeout(() => {
+      registerForm.reset();
+      document.getElementById('regSuccess').style.display = 'none';
+      toggleAuthMode('login');
+      document.getElementById('loginEmail').value = email;
+    }, 1500);
+  });
+
+  loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const password = document.getElementById('loginPassword').value;
+
+    const users = getUsers();
+    if (users[email] && users[email].password === password) {
+      sessionStorage.setItem('active_user', email);
+      sessionStorage.setItem('active_role', users[email].role);
+      document.getElementById('loginError').style.display = 'none';
+      loginForm.reset();
+      
+      if (users[email].role === 'admin') {
+        let adminTabBtn = document.getElementById('tabBtnAdmin');
+        if (!adminTabBtn) {
+          adminTabBtn = document.createElement('button');
+          adminTabBtn.id = 'tabBtnAdmin';
+          adminTabBtn.className = 'tab-btn';
+          adminTabBtn.textContent = '🛡️ Admin Dashboard';
+          adminTabBtn.onclick = () => switchTab('admin');
+          document.getElementById('navTabsContainer').appendChild(adminTabBtn);
+        }
+        switchTab('admin');
+      } else {
+        switchTab('planner');
+      }
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  });
+
+  function logout() {
+    sessionStorage.clear();
+    const adminBtn = document.getElementById('tabBtnAdmin');
+    if (adminBtn) adminBtn.remove();
+    switchTab('journal');
+  }
+
+  function injectSampleData() {
+    const users = getUsers();
+    users['sample.traveler@example.com'] = {
+      name: 'Jessica Pearson',
+      email: 'sample.traveler@example.com',
+      phone: '+1 (310) 555-0199',
+      role: 'user'
+    };
+    saveUsers(users);
+
+    const requests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    requests.push({
+      user: 'sample.traveler@example.com',
+      destination: 'Swiss Alps & Zurich',
+      days: '7 Days (1 Week)',
+      notes: 'Luxury ski chalets, scenic train tours, and private fondue dining.',
+      contactEmail: 'sample.traveler@example.com',
+      status: 'Pending Review'
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+    loadAdminDashboard();
+    alert("Sample traveler and request injected successfully!");
+  }
+
+  journalCmsForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const title = document.getElementById('cmsTitle').value.trim();
+    const image = document.getElementById('cmsImage').value.trim();
+    const video = document.getElementById('cmsVideo').value.trim();
+    const content = document.getElementById('cmsContent').value.trim();
+
+    const journals = JSON.parse(localStorage.getItem('exquisite_travel_journals')) || [];
+    journals.unshift({
+      id: Date.now(),
+      title,
+      image,
+      video,
+      content,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    });
+
+    localStorage.setItem('exquisite_travel_journals', JSON.stringify(journals));
+    journalCmsForm.reset();
+    alert("Journal entry published successfully!");
+    loadAdminDashboard();
+  });
+
+  function loadPublicJournalFeed() {
+    const feed = document.getElementById('publicJournalFeed');
+    const journals = JSON.parse(localStorage.getItem('exquisite_travel_journals')) || [
+      {
+        title: "Sunset over the Amalfi Coast",
+        image: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80",
+        content: "Exploring clifftop lemon groves and hidden azure coves along the Italian coastline. A truly transcendent Mediterranean escape.",
+        date: "Oct 10, 2026"
+      },
+      {
+        title: "Bamboo Forests of Kyoto",
+        image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80",
+        content: "Serene morning walks through Arashiyama, followed by traditional tea ceremonies in historic Gion.",
+        date: "Sep 28, 2026"
+      }
+    ];
+
+    feed.innerHTML = '';
+    journals.forEach(j => {
+      feed.innerHTML += `
+        <div class="journal-entry-card">
+          <img src="${j.image}" alt="${j.title}" class="journal-img">
+          <div class="journal-body">
+            <div class="journal-meta">📍 ${j.date}</div>
+            <h3 style="margin-bottom:10px;">${j.title}</h3>
+            <p style="font-size:14px; color:#64748b; line-height:1.5; flex-grow:1;">${j.content}</p>
+            ${j.video ? `<a href="${j.video}" target="_blank" class="btn-small" style="background:#0f172a; text-align:center; text-decoration:none; margin-top:15px; display:block;">▶️ Watch Video Spotlight</a>` : ''}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function loadUserRequests(userEmail) {
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const userRequests = allRequests.filter(req => req.user === userEmail);
+    const tbody = document.getElementById('userTableBody');
+    tbody.innerHTML = '';
+
+    if (userRequests.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; text-align:center;">No requests submitted yet.</td></tr>';
+      return;
+    }
+
+    userRequests.forEach(req => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${req.destination}</strong></td>
+        <td>${req.days}</td>
+        <td>${req.notes || '—'}</td>
+        <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
+        <td>${req.aiItinerary ? `<button class="btn-small" onclick="viewItinerary('${encodeURIComponent(req.aiItinerary)}')">View Plan</button>` : '<em style="color:#94a3b8;">Processing...</em>'}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function viewItinerary(encodedItinerary) {
+    alert(decodeURIComponent(encodedItinerary));
+  }
+
+  function loadAdminDashboard() {
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const journals = JSON.parse(localStorage.getItem('exquisite_travel_journals')) || [];
+    const users = getUsers();
+    const tbody = document.getElementById('adminTableBody');
+    tbody.innerHTML = '';
+
+    document.getElementById('metricTotal').textContent = allRequests.length;
+    document.getElementById('metricPending').textContent = allRequests.filter(r => r.status === 'Pending Review').length;
+    document.getElementById('metricJournals').textContent = journals.length;
+
+    const savedKey = localStorage.getItem('gemini_api_key') || '';
+    document.getElementById('geminiApiKey').value = savedKey;
+
+    if (allRequests.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; text-align:center;">No client requests in queue.</td></tr>';
+      return;
+    }
+
+    allRequests.forEach((req, index) => {
+      const profile = users[req.user] || { name: 'Unknown Traveler', phone: '—' };
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <strong>${profile.name}</strong><br>
+          <span style="font-size:13px; color:#64748b;">✉️ ${req.user}</span><br>
+          <span style="font-size:13px; color:#64748b;">📞 ${profile.phone}</span>
+        </td>
+        <td>
+          <strong>${req.destination}</strong><br>
+          <span style="font-size:13px; color:#64748b;">Duration: ${req.days}</span>
+        </td>
+        <td style="max-width:220px; word-break:break-word;">${req.notes || '—'}</td>
+        <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
+        <td>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn-ai btn-small" onclick="generateAiItinerary(${index})">✨ AI Generate Plan</button>
+            <select onchange="updateStatus(${index}, this.value)" style="padding:6px; font-size:13px; border-radius:6px;">
+              <option value="Pending Review" ${req.status==='Pending Review'?'selected':''}>Pending Review</option>
+              <option value="Approved" ${req.status==='Approved'?'selected':''}>Approved</option>
+              <option value="Itinerary Sent" ${req.status==='Itinerary Sent'?'selected':''}>Itinerary Sent</option>
+            </select>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  async function generateAiItinerary(index) {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      alert("Please paste your Gemini API Key in the settings box at the top of the Admin Dashboard first.");
+      return;
+    }
+
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const users = getUsers();
+    const req = allRequests[index];
+    const profile = users[req.user] || { name: 'Traveler' };
+
+    const modal = document.getElementById('aiModal');
+    const outputBox = document.getElementById('aiOutputText');
+    const targetDetail = document.getElementById('aiTargetDetail');
+
+    modal.classList.remove('hidden');
+    targetDetail.innerHTML = `Generating Exquisite Itinerary for <strong>${profile.name}</strong> (${req.days} in ${req.destination})...`;
+    outputBox.textContent = "Connecting to Gemini AI Concierge...";
+
+    const prompt = `Create a luxurious, highly detailed, and engaging day-by-day travel itinerary for a ${req.days} trip to ${req.destination} for ${profile.name}. Traveler Preferences: "${req.notes || 'Curated local experiences, fine dining, and hidden scenic spots'}". Format with elegant headings for each day.`;
+
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        const aiResponseText = data.candidates[0].content.parts[0].text;
+        outputBox.textContent = aiResponseText;
+
+        allRequests[index].aiItinerary = aiResponseText;
+        allRequests[index].status = 'Itinerary Sent';
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(allRequests));
+        loadAdminDashboard();
+      } else {
+        outputBox.textContent = "Error generating response: " + JSON.stringify(data);
+      }
+    } catch (err) {
+      outputBox.textContent = "Failed to connect to AI API: " + err.message;
+    }
+  }
+
+  function closeAiModal() {
+    document.getElementById('aiModal').classList.add('hidden');
+  }
+
+  function updateStatus(index, newStatus) {
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    allRequests[index].status = newStatus;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allRequests));
+    loadAdminDashboard();
+  }
+
+  itineraryForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const activeUser = sessionStorage.getItem('active_user');
+    const destination = document.getElementById('destination').value;
+    const days = document.getElementById('days').value;
+    const notes = document.getElementById('notes').value;
+    const contactEmail = document.getElementById('contactEmail').value;
+
+    const allRequests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    allRequests.push({
+      user: activeUser,
+      destination,
+      days,
+      notes,
+      contactEmail,
+      status: 'Pending Review'
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allRequests));
+
+    itineraryForm.reset();
+    alert("Itinerary request submitted successfully!");
+    switchTab('planner');
+  });
+
+  function getBadgeClass(status) {
+    if (status === 'Approved') return 'badge-approved';
+    if (status === 'Itinerary Sent') return 'badge-sent';
+    return 'badge-pending';
+  }
+
+  // Check active session on load
+  const activeUser = sessionStorage.getItem('active_user');
+  const role = sessionStorage.getItem('active_role');
+  if (activeUser && role === 'admin') {
+    let adminTabBtn = document.createElement('button');
+    adminTabBtn.id = 'tabBtnAdmin';
+    adminTabBtn.className = 'tab-btn';
+    adminTabBtn.textContent = '🛡️ Admin Dashboard';
+    adminTabBtn.onclick = () => switchTab('admin');
+    document.getElementById('navTabsContainer').appendChild(adminTabBtn);
+  }
+
+  // Initial load
+  loadPublicJournalFeed();
+</script>
+
+</body>
+</html>
