@@ -3,211 +3,291 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Travel Itinerary Portal</title>
+  <title>Exquisite Travel | Virtual Travel Journal & Custom Itineraries</title>
   <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #d97706;
+      --accent-hover: #b45309;
+      --bg-light: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #334155;
+      --border-color: #e2e8f0;
+    }
+
     * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #f4f7f6; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
-    .container { max-width: 950px; width: 100%; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
-    h1, h2, h3 { margin-top: 0; color: #1a2b4c; }
+    body { background-color: var(--bg-light); margin: 0; padding: 0; color: var(--text-main); }
+
+    /* Hero Branding Header */
+    .brand-hero {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.88)), url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .brand-hero h1 { font-size: 2.8rem; margin: 0 0 10px 0; letter-spacing: -0.5px; font-weight: 800; }
+    .brand-hero p { font-size: 1.15rem; margin: 0 0 15px 0; opacity: 0.9; }
+    .instagram-badge { display: inline-block; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; text-decoration: none; margin-top: 10px; }
+
+    .main-wrapper { max-width: 1050px; margin: -30px auto 50px auto; padding: 0 20px; position: relative; z-index: 2; }
+    
+    .card { background: var(--card-bg); border-radius: 16px; padding: 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); border: 1px solid var(--border-color); margin-bottom: 30px; }
+    
+    h2, h3 { color: var(--primary); margin-top: 0; }
     .form-group { margin-bottom: 20px; }
-    label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
-    input[type="text"], input[type="email"], input[type="password"], select, textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
-    button { background-color: #0066cc; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: 600; border-radius: 6px; cursor: pointer; }
-    button:hover { background-color: #004b99; }
-    .btn-ai { background-color: #6f42c1; color: white; padding: 6px 12px; font-size: 13px; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; }
-    .btn-ai:hover { background-color: #593196; }
-    .btn-small { padding: 6px 12px; font-size: 13px; }
-    .logout-btn { background-color: #dc3545; float: right; padding: 8px 16px; font-size: 14px; }
-    .logout-btn:hover { background-color: #c82333; }
-    hr { margin: 40px 0; border: none; border-top: 1px solid #eee; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-    th { background-color: #f8f9fa; color: #555; }
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-    .badge-pending { background-color: #fff3cd; color: #856404; }
-    .badge-approved { background-color: #d4edda; color: #155724; }
-    .badge-sent { background-color: #cce5ff; color: #004085; }
-    .error-msg { color: #dc3545; margin-top: 10px; display: none; font-weight: 600; }
-    .success-msg { color: #28a745; margin-top: 10px; display: none; font-weight: 600; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 0.95rem; }
+    input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select, textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; background: #fcfcfc; transition: all 0.2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15); }
+    
+    button { background-color: var(--accent); color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: background 0.2s; width: 100%; }
+    button:hover { background-color: var(--accent-hover); }
+    
+    .btn-small { padding: 6px 12px; font-size: 13px; width: auto; display: inline-block; }
+    .btn-ai { background-color: #7c3aed; width: auto; margin-right: 5px; }
+    .btn-ai:hover { background-color: #6d28d9; }
+    .logout-btn { background-color: #ef4444; width: auto; padding: 8px 16px; font-size: 14px; float: right; }
+    .logout-btn:hover { background-color: #dc2626; }
+
+    /* Dashboard Metrics Cards */
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
+    .metric-card { background: #f8fafc; border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; text-align: center; }
+    .metric-card h4 { margin: 0 0 8px 0; color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-card span { font-size: 2rem; font-weight: 800; color: var(--primary); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 8px; overflow: hidden; }
+    th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+    th { background-color: #f1f5f9; color: #475569; font-weight: 700; }
+    
+    .badge { padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; }
+    .badge-pending { background-color: #fef3c7; color: #92400e; }
+    .badge-approved { background-color: #d1fae5; color: #065f46; }
+    .badge-sent { background-color: #dbeafe; color: #1e40af; }
+
+    .error-msg { color: #dc2626; margin-top: 10px; display: none; font-weight: 600; font-size: 14px; }
+    .success-msg { color: #16a34a; margin-top: 10px; display: none; font-weight: 600; font-size: 14px; }
     .hidden { display: none; }
-    .user-banner { background: #eef5ff; padding: 12px 18px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-    .admin-banner { background: #fff3cd; border: 1px solid #ffeba2; }
-    .toggle-link { margin-top: 15px; font-size: 14px; color: #0066cc; cursor: pointer; text-decoration: underline; }
-    .api-key-box { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
-    .ai-response-modal { background: #f0f4f8; border: 1px solid #cbd5e1; padding: 20px; border-radius: 8px; margin-top: 20px; }
-    .ai-output-area { background: #fff; border: 1px solid #ccc; padding: 15px; border-radius: 6px; white-space: pre-wrap; font-family: monospace; font-size: 14px; max-height: 300px; overflow-y: auto; margin-bottom: 15px; }
-    .demo-credentials { background: #f8f9fa; padding: 15px; border-radius: 6px; font-size: 14px; margin-top: 20px; }
+    
+    .user-banner { background: #e0f2fe; border: 1px solid #bae6fd; padding: 14px 20px; border-radius: 10px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; color: #0369a1; font-weight: 600; }
+    .admin-banner { background: #fef3c7; border-color: #fde68a; color: #b45309; }
+    
+    .toggle-link { margin-top: 20px; font-size: 14px; color: #2563eb; cursor: pointer; text-decoration: underline; text-align: center; }
+    .api-key-box { background: #f8fafc; padding: 18px; border-radius: 10px; margin-bottom: 25px; border: 1px solid var(--border-color); }
+    .ai-response-modal { background: #f8fafc; border: 1px solid #cbd5e1; padding: 25px; border-radius: 12px; margin-top: 25px; }
+    .ai-output-area { background: #fff; border: 1px solid var(--border-color); padding: 18px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; font-size: 14px; max-height: 350px; overflow-y: auto; margin-bottom: 15px; line-height: 1.5; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 30px; align-items: center; }
+    .divider { background: var(--border-color); height: 100%; width: 1px; }
+    @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } .divider { display: none; } }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <!-- AUTH SECTION -->
-  <div id="authSection">
-    <!-- LOGIN FORM -->
-    <div id="loginBox">
-      <h1>🔑 Sign In</h1>
-      <p>Sign in to submit requests or view your travel itineraries.</p>
+<div class="brand-hero">
+  <h1>✨ Exquisite Travel</h1>
+  <p>Your Virtual Travel Journal & Bespoke Itinerary Concierge</p>
+  <a class="instagram-badge" href="https://instagram.com" target="_blank">📸 Follow @ExquisiteTravel on Instagram</a>
+</div>
 
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="loginEmail">Email Address</label>
-          <input type="email" id="loginEmail" placeholder="e.g., name@example.com" required>
+<div class="main-wrapper">
+
+  <!-- AUTH SECTION (LOGIN & REGISTRATION) -->
+  <div id="authSection" class="card">
+    <div class="grid-2">
+      <!-- LOGIN FORM -->
+      <div id="loginBox">
+        <h2>🔑 Welcome Back</h2>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">Sign in to access your curated travel plans.</p>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" placeholder="e.g. name@example.com" required>
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required>
+          </div>
+          <button type="submit">Sign In</button>
+          <div id="loginError" class="error-msg">Invalid email or password.</div>
+        </form>
+        <div class="toggle-link" onclick="toggleAuthMode('register')">New traveler? Create an account →</div>
+      </div>
+
+      <!-- REGISTER FORM (COLLECTING NAME, EMAIL, PHONE) -->
+      <div id="registerBox" class="hidden">
+        <h2>✈️ Join Exquisite Travel</h2>
+        <p style="color:#64748b; font-size:14px; margin-bottom:15px;">Register your traveler profile to request custom itineraries.</p>
+
+        <form id="registerForm">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="regName">Full Name</label>
+            <input type="text" id="regName" placeholder="e.g. Sarah Jenkins" required>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="regEmail">Email Address</label>
+            <input type="email" id="regEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="regPhone">Phone Number</label>
+            <input type="tel" id="regPhone" placeholder="+1 (555) 000-0000" required>
+          </div>
+          <div class="form-group" style="margin-bottom:15px;">
+            <label for="regPassword">Create Password</label>
+            <input type="password" id="regPassword" placeholder="6+ characters" required minlength="6">
+          </div>
+          <button type="submit">Create Account</button>
+          <div id="regError" class="error-msg">An account with this email already exists.</div>
+          <div id="regSuccess" class="success-msg">Profile created successfully! Redirecting...</div>
+        </form>
+        <div class="toggle-link" onclick="toggleAuthMode('login')">Already have an account? Sign in →</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- DEMO INFO PANEL -->
+      <div style="padding-left: 10px;">
+        <h3 style="margin-bottom:10px;">🌟 Explore Our Journal</h3>
+        <p style="font-size:14px; color:#64748b; line-height:1.6;">
+          Welcome to Exquisite Travel. Whether you're dreaming of a culinary escape through Europe or a luxury coastal retreat, our AI concierge helps curate your ultimate journey.
+        </p>
+        <div style="background:#f1f5f9; padding:15px; border-radius:10px; margin-top:20px; font-size:13px;">
+          🛡️ <strong>Admin Portal Access:</strong><br>
+          • <code>admin@travel.com</code> / <code>admin123</code>
         </div>
-
-        <div class="form-group">
-          <label for="loginPassword">Password</label>
-          <input type="password" id="loginPassword" placeholder="Enter password" required>
-        </div>
-
-        <button type="submit">Sign In</button>
-        <div id="loginError" class="error-msg">Invalid email or password.</div>
-      </form>
-
-      <div class="toggle-link" onclick="toggleAuthMode('register')">Don't have an account? Create one here →</div>
-    </div>
-
-    <!-- REGISTER FORM -->
-    <div id="registerBox" class="hidden">
-      <h1>📝 Create an Account</h1>
-      <p>Register with your email to start submitting itinerary requests.</p>
-
-      <form id="registerForm">
-        <div class="form-group">
-          <label for="regEmail">Email Address</label>
-          <input type="email" id="regEmail" placeholder="your-email@example.com" required>
-        </div>
-
-        <div class="form-group">
-          <label for="regPassword">Create Password</label>
-          <input type="password" id="regPassword" placeholder="Choose a password" required minlength="6">
-        </div>
-
-        <button type="submit">Register Account</button>
-        <div id="regError" class="error-msg">An account with this email already exists.</div>
-        <div id="regSuccess" class="success-msg">Account created successfully! Redirecting to login...</div>
-      </form>
-
-      <div class="toggle-link" onclick="toggleAuthMode('login')">Already have an account? Sign in here →</div>
-    </div>
-
-    <div class="demo-credentials">
-      🛡️ <strong>Administrator Access:</strong><br>
-      • <code>admin@travel.com</code> / <code>admin123</code>
+      </div>
     </div>
   </div>
 
   <!-- USER PORTAL SECTION -->
   <div id="userSection" class="hidden">
     <div class="user-banner">
-      <span>Logged in as: <strong id="currentUserDisplay"></strong> (User)</span>
+      <span>Welcome back, <strong id="currentUserDisplay"></strong>!</span>
       <button class="logout-btn" onclick="logout()">Log Out</button>
     </div>
 
-    <h1>🌍 Travel Itinerary Request Portal</h1>
-    <p>Submit your travel details below and we will send a customized itinerary to your email.</p>
+    <div class="card">
+      <h2>🌍 Request a Custom Itinerary</h2>
+      <p style="color:#64748b; margin-bottom:25px;">Fill out your travel details and our journal experts will generate your personalized travel guide.</p>
 
-    <form id="itineraryForm">
-      <div class="form-group">
-        <label for="destination">Destination City / Country</label>
-        <input type="text" id="destination" placeholder="e.g., Tokyo, Japan or Paris, France" required>
-      </div>
+      <form id="itineraryForm">
+        <div class="form-group">
+          <label for="destination">Destination City / Country</label>
+          <input type="text" id="destination" placeholder="e.g., Amalfi Coast, Italy or Kyoto, Japan" required>
+        </div>
 
-      <div class="form-group">
-        <label for="days">Number of Days</label>
-        <select id="days" required>
-          <option value="" disabled selected>Select duration...</option>
-          <option value="1 Day">1 Day</option>
-          <option value="3 Days">3 Days</option>
-          <option value="5 Days">5 Days</option>
-          <option value="7 Days (1 Week)">7 Days (1 Week)</option>
-          <option value="10 Days">10 Days</option>
-          <option value="14 Days (2 Weeks)">14 Days (2 Weeks)</option>
-        </select>
-      </div>
+        <div class="form-group">
+          <label for="days">Duration</label>
+          <select id="days" required>
+            <option value="" disabled selected>Select trip duration...</option>
+            <option value="1 Day">1 Day</option>
+            <option value="3 Days">3 Days</option>
+            <option value="5 Days">5 Days</option>
+            <option value="7 Days (1 Week)">7 Days (1 Week)</option>
+            <option value="10 Days">10 Days</option>
+            <option value="14 Days (2 Weeks)">14 Days (2 Weeks)</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="notes">Preferences / Special Requests</label>
-        <textarea id="notes" rows="3" placeholder="e.g., Foodie tour, luxury hotels, budget friendly..."></textarea>
-      </div>
+        <div class="form-group">
+          <label for="notes">Preferences / Special Requests</label>
+          <textarea id="notes" rows="3" placeholder="e.g., Luxury boutique hotels, private wine tasting tours, hidden viewpoints..."></textarea>
+        </div>
 
-      <div class="form-group">
-        <label for="contactEmail">Email to Send Itinerary To</label>
-        <input type="email" id="contactEmail" placeholder="your-email@example.com" required>
-      </div>
+        <div class="form-group">
+          <label for="contactEmail">Delivery Email</label>
+          <input type="email" id="contactEmail" required>
+        </div>
 
-      <button type="submit">Submit Request</button>
-    </form>
+        <button type="submit">Submit Itinerary Request</button>
+      </form>
+    </div>
 
-    <hr>
-
-    <h2>Your Submitted Requests</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Destination</th>
-          <th>Duration</th>
-          <th>Preferences</th>
-          <th>Delivery Email</th>
-          <th>Status</th>
-          <th>Generated Itinerary</th>
-        </tr>
-      </thead>
-      <tbody id="userTableBody"></tbody>
-    </table>
+    <div class="card">
+      <h2>📋 Your Itinerary Submissions</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Destination</th>
+            <th>Duration</th>
+            <th>Preferences</th>
+            <th>Status</th>
+            <th>Itinerary Plan</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- ADMIN DASHBOARD SECTION -->
   <div id="adminSection" class="hidden">
     <div class="user-banner admin-banner">
-      <span>🛡️ Admin Dashboard (<strong id="currentAdminDisplay"></strong>)</span>
+      <span>🛡️ Exquisite Travel - Executive Admin Dashboard</span>
       <button class="logout-btn" onclick="logout()">Log Out</button>
     </div>
 
-    <h1>📋 Manage & AI-Generate Itineraries</h1>
+    <!-- METRICS OVERVIEW -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <h4>Total Requests</h4>
+        <span id="metricTotal">0</span>
+      </div>
+      <div class="metric-card">
+        <h4>Pending Review</h4>
+        <span id="metricPending">0</span>
+      </div>
+      <div class="metric-card">
+        <h4>Generated & Sent</h4>
+        <span id="metricSent">0</span>
+      </div>
+    </div>
 
-    <!-- API KEY CONFIGURATION -->
-    <div class="api-key-box">
+    <!-- API CONFIGURATION -->
+    <div class="card api-key-box" style="padding: 20px;">
       <label for="geminiApiKey">🔑 Gemini AI API Key Settings:</label>
       <input type="password" id="geminiApiKey" placeholder="Paste your Gemini API Key here" onchange="saveApiKey(this.value)">
-      <small style="color:#666;">Get a free API key from Google AI Studio. It is saved securely in your local browser session.</small>
+      <small style="color:#64748b;">Securely saved in your browser session for automated itinerary generation.</small>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>User Account</th>
-          <th>Destination</th>
-          <th>Duration</th>
-          <th>Preferences</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="adminTableBody"></tbody>
-    </table>
+    <!-- REQUESTS MANAGEMENT TABLE -->
+    <div class="card">
+      <h2>📋 Client Itinerary Requests & Traveler Profiles</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Traveler Details (Name, Phone, Email)</th>
+            <th>Destination & Duration</th>
+            <th>Preferences</th>
+            <th>Status</th>
+            <th>Actions / AI Generator</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody"></tbody>
+      </table>
 
-    <!-- AI GENERATED OUTPUT PREVIEW -->
-    <div id="aiModal" class="ai-response-modal hidden">
-      <h3>✨ AI Generated Response Preview</h3>
-      <p id="aiTargetDetail"></p>
-      <div id="aiOutputText" class="ai-output-area">Generating response...</div>
-      <button class="btn-small" onclick="closeAiModal()">Close Preview</button>
+      <!-- AI GENERATED OUTPUT PREVIEW MODAL -->
+      <div id="aiModal" class="ai-response-modal hidden">
+        <h3>✨ AI Generated Itinerary Preview</h3>
+        <p id="aiTargetDetail" style="font-weight:600; color:#475569; margin-bottom:10px;"></p>
+        <div id="aiOutputText" class="ai-output-area">Generating response...</div>
+        <button class="btn-small" onclick="closeAiModal()">Close Preview</button>
+      </div>
     </div>
   </div>
+
 </div>
 
 <script>
   function getUsers() {
     const defaultUsers = {
-      'admin@travel.com': { password: 'admin123', role: 'admin' }
+      'admin@travel.com': { password: 'admin123', name: 'System Admin', phone: '—', role: 'admin' }
     };
-    const stored = localStorage.getItem('portal_registered_users');
+    const stored = localStorage.getItem('exquisite_registered_users');
     return stored ? JSON.parse(stored) : defaultUsers;
   }
 
   function saveUsers(usersObj) {
-    localStorage.setItem('portal_registered_users', JSON.stringify(usersObj));
+    localStorage.setItem('exquisite_registered_users', JSON.stringify(usersObj));
   }
 
   function saveApiKey(key) {
@@ -236,22 +316,23 @@
   function checkSession() {
     const activeUser = sessionStorage.getItem('active_user');
     const role = sessionStorage.getItem('active_role');
+    const users = getUsers();
 
     if (activeUser && role === 'user') {
       authSection.classList.add('hidden');
       adminSection.classList.add('hidden');
       userSection.classList.remove('hidden');
-      document.getElementById('currentUserDisplay').textContent = activeUser;
+      const profile = users[activeUser] || {};
+      document.getElementById('currentUserDisplay').textContent = profile.name || activeUser;
       document.getElementById('contactEmail').value = activeUser;
       loadUserRequests(activeUser);
     } else if (activeUser && role === 'admin') {
       authSection.classList.add('hidden');
       userSection.classList.add('hidden');
       adminSection.classList.remove('hidden');
-      document.getElementById('currentAdminDisplay').textContent = activeUser;
       const savedKey = localStorage.getItem('gemini_api_key') || '';
       document.getElementById('geminiApiKey').value = savedKey;
-      loadAdminRequests();
+      loadAdminDashboard();
     } else {
       authSection.classList.remove('hidden');
       userSection.classList.add('hidden');
@@ -259,20 +340,23 @@
     }
   }
 
+  // Registration Handler with Full Contact Info
   registerForm.addEventListener('submit', function(e) {
     e.preventDefault();
+    const name = document.getElementById('regName').value.trim();
     const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const phone = document.getElementById('regPhone').value.trim();
     const password = document.getElementById('regPassword').value;
 
-    const currentUsers = getUsers();
-    if (currentUsers[email]) {
+    const users = getUsers();
+    if (users[email]) {
       document.getElementById('regError').style.display = 'block';
       document.getElementById('regSuccess').style.display = 'none';
       return;
     }
 
-    currentUsers[email] = { password: password, role: 'user' };
-    saveUsers(currentUsers);
+    users[email] = { name, email, phone, password, role: 'user' };
+    saveUsers(users);
 
     document.getElementById('regError').style.display = 'none';
     document.getElementById('regSuccess').style.display = 'block';
@@ -285,15 +369,16 @@
     }, 1500);
   });
 
+  // Login Handler
   loginForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
     const password = document.getElementById('loginPassword').value;
 
-    const currentUsers = getUsers();
-    if (currentUsers[email] && currentUsers[email].password === password) {
+    const users = getUsers();
+    if (users[email] && users[email].password === password) {
       sessionStorage.setItem('active_user', email);
-      sessionStorage.setItem('active_role', currentUsers[email].role);
+      sessionStorage.setItem('active_role', users[email].role);
       document.getElementById('loginError').style.display = 'none';
       loginForm.reset();
       checkSession();
@@ -314,13 +399,13 @@
   }
 
   function loadUserRequests(userEmail) {
-    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
     const userRequests = allRequests.filter(req => req.user === userEmail);
     const tbody = document.getElementById('userTableBody');
     tbody.innerHTML = '';
 
     if (userRequests.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:#888;">No requests submitted yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; text-align:center;">No itinerary requests submitted yet. Start planning above!</td></tr>';
       return;
     }
 
@@ -330,9 +415,8 @@
         <td><strong>${req.destination}</strong></td>
         <td>${req.days}</td>
         <td>${req.notes || '—'}</td>
-        <td>${req.contactEmail}</td>
         <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
-        <td>${req.aiItinerary ? `<button class="btn-small" onclick="viewItinerary('${encodeURIComponent(req.aiItinerary)}')">View Plan</button>` : '<em style="color:#aaa;">Pending AI</em>'}</td>
+        <td>${req.aiItinerary ? `<button class="btn-small" onclick="viewItinerary('${encodeURIComponent(req.aiItinerary)}')">View Plan</button>` : '<em style="color:#94a3b8;">Processing...</em>'}</td>
       `;
       tbody.appendChild(row);
     });
@@ -342,31 +426,50 @@
     alert(decodeURIComponent(encodedItinerary));
   }
 
-  function loadAdminRequests() {
-    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+  function loadAdminDashboard() {
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const users = getUsers();
     const tbody = document.getElementById('adminTableBody');
     tbody.innerHTML = '';
 
-    if (allRequests.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:#888;">No user requests in queue.</td></tr>';
+    // Calculate Metrics
+    const total = allRequests.length;
+    const pending = allRequests.filter(r => r.status === 'Pending Review').length;
+    const sent = allRequests.filter(r => r.status === 'Itinerary Sent').length;
+
+    document.getElementById('metricTotal').textContent = total;
+    document.getElementById('metricPending').textContent = pending;
+    document.getElementById('metricSent').textContent = sent;
+
+    if (total === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b; text-align:center;">No requests in the queue.</td></tr>';
       return;
     }
 
     allRequests.forEach((req, index) => {
+      const profile = users[req.user] || { name: 'Unknown Traveler', phone: '—' };
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${req.user}</td>
-        <td><strong>${req.destination}</strong></td>
-        <td>${req.days}</td>
-        <td>${req.notes || '—'}</td>
+        <td>
+          <strong>${profile.name}</strong><br>
+          <span style="font-size:13px; color:#64748b;">✉️ ${req.user}</span><br>
+          <span style="font-size:13px; color:#64748b;">📞 ${profile.phone}</span>
+        </td>
+        <td>
+          <strong>${req.destination}</strong><br>
+          <span style="font-size:13px; color:#64748b;">Duration: ${req.days}</span>
+        </td>
+        <td style="max-width:220px; word-break:break-word;">${req.notes || '—'}</td>
         <td><span class="badge ${getBadgeClass(req.status)}">${req.status}</span></td>
         <td>
-          <button class="btn-ai" onclick="generateAiItinerary(${index})">✨ Generate AI Response</button>
-          <select onchange="updateStatus(${index}, this.value)" style="padding:4px; font-size:12px; margin-top:5px;">
-            <option value="Pending Review" ${req.status==='Pending Review'?'selected':''}>Pending Review</option>
-            <option value="Approved" ${req.status==='Approved'?'selected':''}>Approved</option>
-            <option value="Itinerary Sent" ${req.status==='Itinerary Sent'?'selected':''}>Itinerary Sent</option>
-          </select>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="btn-ai btn-small" onclick="generateAiItinerary(${index})">✨ AI Generate Plan</button>
+            <select onchange="updateStatus(${index}, this.value)" style="padding:6px; font-size:13px; border-radius:6px;">
+              <option value="Pending Review" ${req.status==='Pending Review'?'selected':''}>Pending Review</option>
+              <option value="Approved" ${req.status==='Approved'?'selected':''}>Approved</option>
+              <option value="Itinerary Sent" ${req.status==='Itinerary Sent'?'selected':''}>Itinerary Sent</option>
+            </select>
+          </div>
         </td>
       `;
       tbody.appendChild(row);
@@ -380,21 +483,23 @@
       return;
     }
 
-    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
+    const users = getUsers();
     const req = allRequests[index];
+    const profile = users[req.user] || { name: 'Traveler' };
 
     const modal = document.getElementById('aiModal');
     const outputBox = document.getElementById('aiOutputText');
     const targetDetail = document.getElementById('aiTargetDetail');
 
     modal.classList.remove('hidden');
-    targetDetail.innerHTML = `Generating response for <strong>${req.user}</strong> (${req.days} in ${req.destination})...`;
-    outputBox.textContent = "Connecting to Gemini AI Engine...";
+    targetDetail.innerHTML = `Generating Exquisite Itinerary for <strong>${profile.name}</strong> (${req.days} in ${req.destination})...`;
+    outputBox.textContent = "Connecting to Gemini AI Concierge...";
 
-    const prompt = `Create a detailed, exciting, and structured day-by-day travel itinerary for a ${req.days} trip to ${req.destination}. User Preferences: "${req.notes || 'General tourist activities'}". Format nicely with clear headings for each day.`;
+    const prompt = `Create a luxurious, highly detailed, and engaging day-by-day travel itinerary for a ${req.days} trip to ${req.destination} for ${profile.name}. Traveler Preferences: "${req.notes || 'Curated local experiences, fine dining, and hidden scenic spots'}". Format with elegant headings for each day.`;
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -410,8 +515,8 @@
 
         allRequests[index].aiItinerary = aiResponseText;
         allRequests[index].status = 'Itinerary Sent';
-        localStorage.setItem('travel_requests', JSON.stringify(allRequests));
-        loadAdminRequests();
+        localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
+        loadAdminDashboard();
       } else {
         outputBox.textContent = "Error generating response: " + JSON.stringify(data);
       }
@@ -425,10 +530,10 @@
   }
 
   function updateStatus(index, newStatus) {
-    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
     allRequests[index].status = newStatus;
-    localStorage.setItem('travel_requests', JSON.stringify(allRequests));
-    loadAdminRequests();
+    localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
+    loadAdminDashboard();
   }
 
   itineraryForm.addEventListener('submit', function(e) {
@@ -439,7 +544,7 @@
     const notes = document.getElementById('notes').value;
     const contactEmail = document.getElementById('contactEmail').value;
 
-    const allRequests = JSON.parse(localStorage.getItem('travel_requests')) || [];
+    const allRequests = JSON.parse(localStorage.getItem('exquisite_travel_requests')) || [];
     allRequests.push({
       user: activeUser,
       destination,
@@ -448,7 +553,7 @@
       contactEmail,
       status: 'Pending Review'
     });
-    localStorage.setItem('travel_requests', JSON.stringify(allRequests));
+    localStorage.setItem('exquisite_travel_requests', JSON.stringify(allRequests));
 
     itineraryForm.reset();
     checkSession();
